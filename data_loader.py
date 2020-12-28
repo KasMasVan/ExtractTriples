@@ -8,7 +8,27 @@ import ahocorasick
 from config import *
 
 import pyhanlp
+#-------------------------------------------
+total_data = json.load(open(train_data_me_path))
+id2predicate, predicate2id = json.load(open(all_50_schemas_me_path))
+id2predicate = {int(i): j for i, j in id2predicate.items()}
+id2char, char2id = json.load(open(all_chars_me_path))
+num_classes = len(id2predicate)
 
+if not os.path.exists(random_order_vote_path):
+    random_order = [i for i in range(len(total_data))]
+    np.random.shuffle(random_order)
+    json.dump(
+        random_order,
+        open(random_order_vote_path, 'w'),
+        indent=4
+    )
+else:
+    random_order = json.load(open(random_order_vote_path))
+
+train_data = [total_data[j] for i, j in enumerate(random_order) if i % 8 != mode]
+dev_data = [total_data[j] for i, j in enumerate(random_order) if i % 8 == mode]
+#-----------------------------------------------
 
 def tokenize(s):
     return [i.word for i in pyhanlp.HanLP.segment(s)]
@@ -89,6 +109,39 @@ def sent2vec(S):
     V = word2vec[V]
     return V
 
+class SpoSearcher:
+    def __init__(self, train_data):
+        self.s_ac = ahocorasick.Automaton()
+        self.o_ac = ahocorasick.Automaton()
+        self.sp2o = {}
+        self.spo_total = {}
+        for i, d in tqdm(enumerate(train_data), desc=u'构建三元组搜索器'):
+            for s, p, o in d['spo_list']:
+                self.s_ac.add_word(s, s)
+                self.o_ac.add_word(o, o)
+                if (s, o) not in self.sp2o:
+                    self.sp2o[(s, o)] = set()
+                if (s, p, o) not in self.spo_total:
+                    self.spo_total[(s, p, o)] = set()
+                self.sp2o[(s, o)].add(p)
+                self.spo_total[(s, p, o)].add(i)
+        self.s_ac.make_automaton()
+        self.o_ac.make_automaton()
+
+    def extract_items(self, text_in, text_idx=None):
+        R = set()
+        for s in self.s_ac.iter(text_in):
+            for o in self.o_ac.iter(text_in):
+                if (s[1], o[1]) in self.sp2o:
+                    for p in self.sp2o[(s[1], o[1])]:
+                        if text_idx is None:
+                            R.add((s[1], p, o[1]))
+                        elif (self.spo_total[(s[1], p, o[1])] - set([text_idx])):
+                            R.add((s[1], p, o[1]))
+        return list(R)
+
+#the following line of code is added
+spoer = SpoSearcher(train_data)
 
 def extract_items(text_in, spoer, subject_model, object_model):
     text_words = tokenize(text_in.lower())
@@ -254,61 +307,31 @@ class DataGenerator:
                         T1, T2, S1, S2, K1, K2, O1, O2, PRES, PREO = [], [], [], [], [], [], [], [], [], []
 
 
-class SpoSearcher:
-    def __init__(self, train_data):
-        self.s_ac = ahocorasick.Automaton()
-        self.o_ac = ahocorasick.Automaton()
-        self.sp2o = {}
-        self.spo_total = {}
-        for i, d in tqdm(enumerate(train_data), desc=u'构建三元组搜索器'):
-            for s, p, o in d['spo_list']:
-                self.s_ac.add_word(s, s)
-                self.o_ac.add_word(o, o)
-                if (s, o) not in self.sp2o:
-                    self.sp2o[(s, o)] = set()
-                if (s, p, o) not in self.spo_total:
-                    self.spo_total[(s, p, o)] = set()
-                self.sp2o[(s, o)].add(p)
-                self.spo_total[(s, p, o)].add(i)
-        self.s_ac.make_automaton()
-        self.o_ac.make_automaton()
-
-    def extract_items(self, text_in, text_idx=None):
-        R = set()
-        for s in self.s_ac.iter(text_in):
-            for o in self.o_ac.iter(text_in):
-                if (s[1], o[1]) in self.sp2o:
-                    for p in self.sp2o[(s[1], o[1])]:
-                        if text_idx is None:
-                            R.add((s[1], p, o[1]))
-                        elif (self.spo_total[(s[1], p, o[1])] - set([text_idx])):
-                            R.add((s[1], p, o[1]))
-        return list(R)
 
 
 # -------------------------------------------------------------
 # -------------------------------------------------------------
 
 
-total_data = json.load(open(train_data_me_path))
-id2predicate, predicate2id = json.load(open(all_50_schemas_me_path))
-id2predicate = {int(i): j for i, j in id2predicate.items()}
-id2char, char2id = json.load(open(all_chars_me_path))
-num_classes = len(id2predicate)
+#total_data = json.load(open(train_data_me_path))
+#id2predicate, predicate2id = json.load(open(all_50_schemas_me_path))
+#id2predicate = {int(i): j for i, j in id2predicate.items()}
+#id2char, char2id = json.load(open(all_chars_me_path))
+#num_classes = len(id2predicate)
 
-if not os.path.exists(random_order_vote_path):
-    random_order = [i for i in range(len(total_data))]
-    np.random.shuffle(random_order)
-    json.dump(
-        random_order,
-        open(random_order_vote_path, 'w'),
-        indent=4
-    )
-else:
-    random_order = json.load(open(random_order_vote_path))
+#if not os.path.exists(random_order_vote_path):
+    #random_order = [i for i in range(len(total_data))]
+    #np.random.shuffle(random_order)
+    #json.dump(
+        #random_order,
+        #open(random_order_vote_path, 'w'),
+        #indent=4
+    #)
+#else:
+    #random_order = json.load(open(random_order_vote_path))
 
-train_data = [total_data[j] for i, j in enumerate(random_order) if i % 8 != mode]
-dev_data = [total_data[j] for i, j in enumerate(random_order) if i % 8 == mode]
+#train_data = [total_data[j] for i, j in enumerate(random_order) if i % 8 != mode]
+#dev_data = [total_data[j] for i, j in enumerate(random_order) if i % 8 == mode]
 
 predicates = {}
 
