@@ -382,7 +382,8 @@ def train():
 
     train_model.fit_generator(train_D.__iter__(),
                               steps_per_epoch=len(train_D),
-                              epochs=120,
+                              #epochs = 120
+                              epochs=10,
                               callbacks=[evaluator]
                               )
 
