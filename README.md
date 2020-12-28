@@ -1,7 +1,7 @@
 # 使用pyhanlp提取文本中的三元组
 
 （KasMasVan）在原项目基础上修改了以下文件：config.py, data_loader.py, kg_with_ds.py，同时增加了一个可以在google colab中运行的notebook
-[notebook]()
+[notebook](https://github.com/KasMasVan/ExtractTriples/blob/master/%E5%9C%A8google_colab%E4%B8%8A%E8%BF%9B%E8%A1%8C%E4%B8%89%E5%85%83%E7%BB%84%E6%8A%BD%E5%8F%96_1228.ipynb)
 
 修改自[基于DGCNN和概率图的轻量级信息抽取模型](https://kexue.fm/archives/6671#%E6%A0%B7%E6%9C%AC%E7%89%B9%E7%82%B9) 
 
