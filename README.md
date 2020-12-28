@@ -45,8 +45,8 @@
 
 ## 使用方式
 
-- 下载数据集，放置在`config.py`中`DATASET_DIR`对应的目录下(只需要下载数据集，不需要再调整代码)
-- 下载word2vec数据集，放置在`config.py`中`w2v_model_path`对应的路径位置（只需要下载数据集，不需要再调整代码）
+- 下载数据集，放置在`config.py`中`DATASET_DIR`对应的目录下
+- 下载word2vec数据集，放置在`config.py`中`w2v_model_path`对应的路径位置
 
 ```
 pip3 install requirements.txt
