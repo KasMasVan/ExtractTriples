@@ -14,10 +14,12 @@ all_chars_me_path = os.path.join(DATASET_DIR, 'all_chars_me.json')
 random_order_vote_path = './random_order_vote.json'
 
 # 模型文件路径
-model_path = './model/best_model.weights'
+#model_path = './model/best_model.weights'
+model_path = './best_model.weights'
 
 # word2vec词向量模型路径
-w2v_model_path = "{your_w2v_model_path}"
+#w2v_model_path = "{your_w2v_model_path}"
+w2v_model_path = './w2v_model/word2vec_baike'
 
 mode = 0
 char_size = 128
